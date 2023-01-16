@@ -1,0 +1,9 @@
+[api]
+port = "9000"
+
+[database]
+host = "localhost"
+user = "docker"
+pass = "docker"
+name = "docker"
+database = "docker"
