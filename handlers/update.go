@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -15,7 +14,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	//Pega Param
 	codigo, err := strconv.Atoi(chi.URLParam(r, "codigo"))
 	if err != nil {
-		log.Println("Erro buscar param")
+		//log.Println("Erro buscar param")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -24,7 +23,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	var t models.Tarefa
 	err = json.NewDecoder(r.Body).Decode(&t)
 	if err != nil {
-		log.Println("Erro durante decode de Json")
+		//log.Println("Erro durante decode de Json")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}

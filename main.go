@@ -2,49 +2,73 @@ package main
 
 import (
 	"GoRest/config"
+	"GoRest/config/loggerconfig"
+	"GoRest/config/usercontext"
 	"GoRest/db"
 	"GoRest/handlers"
+	"GoRest/port.in"
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
 func main() {
+	//Setting log
+	loadLogger()
+
+	//Setting Config
+	loadConfig()
+
+	//Setting Database
+	loadDatabase()
+
+	//Setting Server
+	loadServer()
+}
+
+func loadLogger() {
+	loggerconfig.ConfigureBaseLogger()
+}
+
+func loadConfig() {
 	//Carrega config
-	log.Println("Start")
+	log.Info().Msg("Config - START")
 	err := config.Load()
-	log.Println("Loaded Config")
 
 	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("Erro durante a busca do config, %v", err))
 		panic(err)
 	}
-	log.Println("No Error Loading Config")
+	log.Info().Msg("Config - END")
+}
 
-	log.Println("Testing Database")
+func loadDatabase() {
+	log.Info().Msg("Database - START")
 	conn, err := db.OpenConnection()
 	if err != nil {
+		log.Err(err).Msg(fmt.Sprintf("Erro durante a conexão com base de dados, %v", err))
 		panic(err)
 	}
 	conn.Close()
-	log.Println("Successful Connection to Database")
+	log.Info().Msg("Database - END")
+}
 
+func loadServer() {
 	//Cria roteamento
-	log.Println("Creating Routers")
+	log.Info().Msg("Routers - START")
 
 	r := chi.NewRouter()
+	r.Use(usercontext.CorrelationMiddleware)
 	r.Post("/", handlers.Create)
 	r.Put("/{codigo}", handlers.Update)
 	r.Delete("/{codigo}", handlers.Delete)
 	r.Get("/", handlers.List)
-	r.Get("/{codigo}", handlers.Get)
-
-	log.Println("Routers Created")
-
-	log.Println("Instanciating Router")
+	r.Get("/{codigo}", port_in.Get)
+	log.Info().Msg("Routers - END")
 
 	//Cria Rotas
+	log.Info().Msg("Server starting on port " + config.GetServerPort() + "...")
 	http.ListenAndServe(fmt.Sprintf(":%s", config.GetServerPort()), r)
-	log.Println("Instanciatiated")
-
+	log.Info().Msg("Server closing...")
 }

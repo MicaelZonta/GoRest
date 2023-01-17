@@ -3,7 +3,6 @@ package handlers
 import (
 	"GoRest/models"
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -12,7 +11,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 	//Chama UseCase
 	tarefaSlice, err := models.GetAll()
 	if err != nil {
-		log.Println("Erro buscar lista")
+		//log.Println("Erro buscar lista")
 	}
 
 	w.Header().Add("Content-Type", "application/json")
