@@ -4,9 +4,9 @@ import (
 	"GoRest/config"
 	"GoRest/config/loggerconfig"
 	"GoRest/config/usercontext"
-	"GoRest/db"
 	"GoRest/handlers"
-	"GoRest/port.in"
+	"GoRest/infra/repository/postgres/connection"
+	"GoRest/port.input"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
@@ -45,7 +45,7 @@ func loadConfig() {
 
 func loadDatabase() {
 	log.Info().Msg("Database - START")
-	conn, err := db.OpenConnection()
+	conn, err := connection.OpenConnection()
 	if err != nil {
 		log.Err(err).Msg(fmt.Sprintf("Erro durante a conexão com base de dados, %v", err))
 		panic(err)
@@ -60,7 +60,7 @@ func loadServer() {
 
 	r := chi.NewRouter()
 	r.Use(usercontext.CorrelationMiddleware)
-	r.Post("/", handlers.Create)
+	r.Post("/", port_in.CriarTarefaPortIn)
 	r.Put("/{codigo}", handlers.Update)
 	r.Delete("/{codigo}", handlers.Delete)
 	r.Get("/", handlers.List)

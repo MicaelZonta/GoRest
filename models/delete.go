@@ -1,9 +1,11 @@
 package models
 
-import "GoRest/db"
+import (
+	"GoRest/infra/repository/postgres/connection"
+)
 
 func Delete(codigo int64) (int64, error) {
-	conn, err := db.OpenConnection()
+	conn, err := connection.OpenConnection()
 	if err != nil {
 		return 0, err
 	}

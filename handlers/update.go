@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"GoRest/core/model"
 	"GoRest/models"
 	"encoding/json"
 	"fmt"
@@ -20,7 +21,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Pega Body
-	var t models.Tarefa
+	var t model.Tarefa
 	err = json.NewDecoder(r.Body).Decode(&t)
 	if err != nil {
 		//log.Println("Erro durante decode de Json")

@@ -1,6 +1,7 @@
 package loghelper
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -13,7 +14,7 @@ type Usercontext struct {
 	UserValues    map[string]string
 }
 
-func CreateUserContext(r *http.Request) (uc Usercontext) {
+func CreateUserContext(r *http.Request) (uc *Usercontext) {
 
 	//Correlation
 	correlationId := r.Context().Value("X-Correlation-Id").(string)
@@ -29,36 +30,36 @@ func CreateUserContext(r *http.Request) (uc Usercontext) {
 	return uc
 }
 
-func LogInfo(us Usercontext, code string, msg string) {
-	logContent(log.Info(), us, code, msg)
+func LogInfo(uC *Usercontext, code string) {
+	logContent(log.Info(), uC, code, "")
 }
 
-func LogDebug(us Usercontext, code string, msg string) {
-	logContent(log.Debug(), us, code, msg)
+func LogDebug(uC *Usercontext, code string) {
+	logContent(log.Debug(), uC, code, "")
 }
 
-func LogWarn(us Usercontext, code string, msg string) {
-	logContent(log.Warn(), us, code, msg)
+func LogWarn(uC *Usercontext, code string) {
+	logContent(log.Warn(), uC, code, "")
 }
 
-func LogError(us Usercontext, code string, msg string) {
-	logContent(log.Error(), us, code, msg)
+func LogError(uC *Usercontext, code string, err error) {
+	logContent(log.Error(), uC, code, fmt.Sprintf("%v", err))
 }
 
-func LogFatal(us Usercontext, code string, msg string) {
-	logContent(log.Fatal(), us, code, msg)
+func LogFatal(uC *Usercontext, code string, err error) {
+	logContent(log.Fatal(), uC, code, fmt.Sprintf("%v", err))
 }
 
-func LogPanic(us Usercontext, code string, msg string) {
-	logContent(log.Panic(), us, code, msg)
+func LogPanic(uC *Usercontext, code string, err error) {
+	logContent(log.Panic(), uC, code, fmt.Sprintf("%v", err))
 }
 
-func logContent(zlog *zerolog.Event, us Usercontext, code string, msg string) {
-	zlog = zlog.Str("correlation-id", us.CorrelationId).
-		Str("transaction-id", us.TransactionId)
-
-	for chave, valor := range us.UserValues {
+func logContent(zlog *zerolog.Event, uC *Usercontext, code string, err string) {
+	zlog = zlog.Str("correlation-id", uC.CorrelationId).
+		Str("transaction-id", uC.TransactionId).
+		Str("error", err)
+	for chave, valor := range uC.UserValues {
 		zlog = zlog.Str(chave, valor)
 	}
-	zlog.Msg(msg)
+	zlog.Msg(LogCodeMessage[code])
 }

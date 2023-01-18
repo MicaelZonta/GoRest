@@ -1,11 +1,14 @@
 package models
 
-import "GoRest/db"
+import (
+	"GoRest/core/model"
+	"GoRest/infra/repository/postgres/connection"
+)
 
-func Get(codigo int64) (t Tarefa, err error) {
-	conn, err := db.OpenConnection()
+func Get(codigo int64) (t model.Tarefa, err error) {
+	conn, err := connection.OpenConnection()
 	if err != nil {
-		return Tarefa{}, err
+		return model.Tarefa{}, err
 	}
 	defer conn.Close()
 

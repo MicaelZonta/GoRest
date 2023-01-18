@@ -1,9 +1,12 @@
 package models
 
-import "GoRest/db"
+import (
+	"GoRest/core/model"
+	"GoRest/infra/repository/postgres/connection"
+)
 
-func Update(codigo int64, t Tarefa) (int64, error) {
-	conn, err := db.OpenConnection()
+func Update(codigo int64, t model.Tarefa) (int64, error) {
+	conn, err := connection.OpenConnection()
 	if err != nil {
 		return 0, err
 	}

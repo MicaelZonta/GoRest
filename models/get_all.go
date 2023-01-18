@@ -1,22 +1,25 @@
 package models
 
-import "GoRest/db"
+import (
+	"GoRest/core/model"
+	"GoRest/infra/repository/postgres/connection"
+)
 
-func GetAll() (tarefaSlice []Tarefa, err error) {
-	conn, err := db.OpenConnection()
+func GetAll() (tarefaSlice []model.Tarefa, err error) {
+	conn, err := connection.OpenConnection()
 	if err != nil {
-		return []Tarefa{}, err
+		return []model.Tarefa{}, err
 	}
 	defer conn.Close()
 
 	//Query
 	rows, err := conn.Query("SELECT * FROM tarefas")
 	if err != nil {
-		return []Tarefa{}, err
+		return []model.Tarefa{}, err
 	}
 
 	for rows.Next() {
-		var t Tarefa
+		var t model.Tarefa
 		err = rows.Scan(&t.Codigo, &t.Titulo, &t.Descricao, &t.Completa)
 		if err != nil {
 			continue
