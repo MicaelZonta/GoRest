@@ -1,6 +1,6 @@
-package models
+package model
 
-type Tarefa struct {
+type TarefaModel struct {
 	Codigo    int64  `json:"codigo"`
 	Titulo    string `json:"titulo"`
 	Descricao string `json:"descricao"`

@@ -1,4 +1,4 @@
-package db
+package connection
 
 import (
 	"GoRest/config"
@@ -16,7 +16,7 @@ func OpenConnection() (*sql.DB, error) {
 	conn, err := sql.Open("postgres", sc)
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	err = conn.Ping()
