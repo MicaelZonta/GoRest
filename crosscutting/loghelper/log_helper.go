@@ -14,20 +14,21 @@ type Usercontext struct {
 	UserValues    map[string]string
 }
 
-func CreateUserContext(r *http.Request) (uc *Usercontext) {
+func CreateUserContext(r *http.Request) *Usercontext {
 
+	uC := Usercontext{}
 	//Correlation
 	correlationId := r.Context().Value("X-Correlation-Id").(string)
 	if correlationId == "" {
 		correlationId = uuid.New().String()
 	}
-	uc.CorrelationId = correlationId
+	uC.CorrelationId = correlationId
 
 	//Transaction
-	uc.TransactionId = uuid.New().String()
+	uC.TransactionId = uuid.New().String()
 
 	//Return UserContext
-	return uc
+	return &uC
 }
 
 func LogInfo(uC *Usercontext, code string) {

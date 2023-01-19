@@ -4,7 +4,6 @@ import (
 	"GoRest/config"
 	"GoRest/config/loggerconfig"
 	"GoRest/config/usercontext"
-	"GoRest/handlers"
 	"GoRest/infra/repository/postgres/connection"
 	"GoRest/port.input"
 	"fmt"
@@ -60,11 +59,11 @@ func loadServer() {
 
 	r := chi.NewRouter()
 	r.Use(usercontext.CorrelationMiddleware)
-	r.Post("/", port_in.CriarTarefaPortIn)
-	r.Put("/{codigo}", handlers.Update)
-	r.Delete("/{codigo}", handlers.Delete)
-	r.Get("/", handlers.List)
-	r.Get("/{codigo}", port_in.Get)
+	r.Post("/", port_in.CriarTarefaController)
+	r.Put("/{codigo}", port_in.AtualizarTabelasController)
+	r.Delete("/{codigo}", port_in.DeletarTabelaController)
+	r.Get("/", port_in.ListarTarefasController)
+	r.Get("/{codigo}", port_in.ConsultarTarefaController)
 	log.Info().Msg("Routers - END")
 
 	//Cria Rotas
