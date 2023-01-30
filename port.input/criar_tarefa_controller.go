@@ -13,29 +13,33 @@ import (
 func CriarTarefaController(w http.ResponseWriter, r *http.Request) {
 
 	//Contexto
-	uC := loghelper.CreateUserContext(r)
-	loghelper.LogInfo(uC, loghelper.I00009)
+	var uC = loghelper.UserContextImpl{}.Init(r.Context().Value("X-Correlation-Id").(string))
+	uC.LogInfo(loghelper.I00009)
+
+	//HttpWriter
+	writer := httphelper.HttpWriterImpl{}.Init()
 
 	//Pega Body
 	var tRequest request.TarefaRequest
 	err := json.NewDecoder(r.Body).Decode(&tRequest)
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00004, err)
-		httphelper.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
+		uC.LogError(loghelper.E00004, err)
+		writer.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
 		return
 	}
 
 	//Usecase
-	tModel, err := usecase.CriarTarefaUsecase(uC, adapter.TarefaModelFromTarefaRequest(tRequest))
+	criarUsecase := usecase.CriarTarefaUseCaseImpl{}.Init(uC)
+	tModel, err := criarUsecase.CriarTarefaExecute(adapter.TarefaModelFromTarefaRequest(tRequest))
 	tResponse := adapter.TarefaResponseFromTarefaModel(tModel)
 
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00005, err)
-		httphelper.CreateResponse(w, http.StatusInternalServerError, "Erro durante processo de salvar Tarefa", []any{tResponse})
+		uC.LogError(loghelper.E00005, err)
+		writer.CreateResponse(w, http.StatusInternalServerError, "Erro durante processo de salvar Tarefa", []any{tResponse})
 		return
 	}
 
 	//Monta Resp
-	loghelper.LogInfo(uC, loghelper.I00010)
-	httphelper.CreateResponse(w, http.StatusCreated, "CREATED", []any{tResponse})
+	uC.LogInfo(loghelper.I00010)
+	writer.CreateResponse(w, http.StatusCreated, "CREATED", []any{tResponse})
 }

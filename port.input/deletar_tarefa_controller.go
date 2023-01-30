@@ -10,35 +10,39 @@ import (
 	"strconv"
 )
 
-func DeletarTabelaController(w http.ResponseWriter, r *http.Request) {
+func DeletarTarefaController(w http.ResponseWriter, r *http.Request) {
 
 	//Contexto
-	uC := loghelper.CreateUserContext(r)
-	loghelper.LogInfo(uC, loghelper.I00001)
+	var uC = loghelper.UserContextImpl{}.Init(r.Context().Value("X-Correlation-Id").(string))
+	uC.LogInfo(loghelper.I00009)
+
+	//HttpWriter
+	writer := httphelper.HttpWriterImpl{}.Init()
 
 	//Pega Param
 	codigo, err := strconv.Atoi(chi.URLParam(r, "codigo"))
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00004, err)
-		httphelper.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
+		uC.LogError(loghelper.E00004, err)
+		writer.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
 		return
 	}
 
 	//Chama UseCase
-	linhasDeletadas, err := usecase.DeletarTarefaUsecase(uC, int64(codigo))
+	deletarUsecase := usecase.DeletarTarefaUsecaseImpl{}.Init(uC)
+	linhasDeletadas, err := deletarUsecase.DeletarTarefaExecute(int64(codigo))
 
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00005, err)
-		httphelper.CreateResponse(w, http.StatusInternalServerError, "Erro ao realizar operação de deletar.", []any{response.TarefaResponse{Codigo: int64(codigo)}})
+		uC.LogError(loghelper.E00005, err)
+		writer.CreateResponse(w, http.StatusInternalServerError, "Erro ao realizar operação de deletar.", []any{response.TarefaResponse{Codigo: int64(codigo)}})
 		return
 	}
 
 	if linhasDeletadas == 0 {
-		loghelper.LogWarn(uC, loghelper.W00001)
-		httphelper.CreateResponse(w, http.StatusUnprocessableEntity, "Registro não encontrado", []any{response.TarefaResponse{Codigo: int64(codigo)}})
+		uC.LogWarn(loghelper.W00001)
+		writer.CreateResponse(w, http.StatusUnprocessableEntity, "Registro não encontrado", []any{response.TarefaResponse{Codigo: int64(codigo)}})
 		return
 	}
 
-	loghelper.LogInfo(uC, loghelper.I00002)
-	httphelper.CreateResponse(w, http.StatusOK, "Registro deletado", []any{response.TarefaResponse{Codigo: int64(codigo)}})
+	uC.LogInfo(loghelper.I00002)
+	writer.CreateResponse(w, http.StatusOK, "Registro deletado", []any{response.TarefaResponse{Codigo: int64(codigo)}})
 }

@@ -11,18 +11,23 @@ import (
 func ListarTarefasController(w http.ResponseWriter, r *http.Request) {
 
 	//Contexto
-	uC := loghelper.CreateUserContext(r)
-	loghelper.LogInfo(uC, loghelper.I00002)
+	var uC = loghelper.UserContextImpl{}.Init(r.Context().Value("X-Correlation-Id").(string))
+	uC.LogInfo(loghelper.I00009)
+	uC.SendValue("1", "1")
+
+	//HttpWriter
+	writer := httphelper.HttpWriterImpl{}.Init()
 
 	//Chama UseCase
-	tarefaModelSlice, err := usecase.ListarTarefaUsecase(uC)
+	listarUsecase := usecase.ListarTarefaCaseImpl{}.Init(uC)
+	tarefaModelSlice, err := listarUsecase.ListarTarefasExecute()
 
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00004, err)
-		httphelper.CreateResponse(w, http.StatusInternalServerError, "Erro durante listagem", nil)
+		uC.LogError(loghelper.E00004, err)
+		writer.CreateResponse(w, http.StatusInternalServerError, "Erro durante listagem", nil)
 		return
 	}
-	loghelper.LogInfo(uC, loghelper.I00002)
+	uC.LogInfo(loghelper.I00002)
 
-	httphelper.CreateResponse(w, http.StatusOK, "Listagem de Tarefas Realizada", []any{adapter.TarefaResponseSliceFromTarefaModelSlice(tarefaModelSlice)})
+	writer.CreateResponse(w, http.StatusOK, "Listagem de Tarefas Realizada", []any{adapter.TarefaResponseSliceFromTarefaModelSlice(tarefaModelSlice)})
 }
