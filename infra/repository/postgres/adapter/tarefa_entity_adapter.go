@@ -9,7 +9,7 @@ func TarefaModelFromTarefaEntity(tE entity.TarefaEntity) (tM model.TarefaModel) 
 
 	tM.Codigo = tE.Codigo
 	tM.Titulo = tE.Titulo
-	tM.Descricao = tE.Titulo
+	tM.Descricao = tE.Descricao
 	tM.Completa = tE.Completa
 
 	return tM

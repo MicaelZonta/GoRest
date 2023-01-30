@@ -5,18 +5,30 @@ import (
 	"net/http"
 )
 
-type response struct {
+type httpResponse struct {
 	Status  int
 	Message string
 	Data    []any
 }
 
-func CreateResponse(w http.ResponseWriter, httpStatus int, msg string, obj []any) {
+type HttpWriter interface {
+	Init() HttpWriter
+	CreateResponse(w http.ResponseWriter, httpStatus int, msg string, obj []any)
+}
+
+type HttpWriterImpl struct {
+}
+
+func (_this HttpWriterImpl) Init() HttpWriter {
+	return _this
+}
+
+func (_this HttpWriterImpl) CreateResponse(w http.ResponseWriter, httpStatus int, msg string, obj []any) {
 	w.Header().Set("Content-Type", "application/json")
 
 	w.WriteHeader(httpStatus)
 
-	r := response{
+	r := httpResponse{
 		Status:  httpStatus,
 		Message: msg,
 		Data:    obj,

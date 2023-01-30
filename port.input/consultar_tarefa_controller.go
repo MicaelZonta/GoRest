@@ -13,33 +13,37 @@ import (
 func ConsultarTarefaController(w http.ResponseWriter, r *http.Request) {
 
 	//Contexto
-	uC := loghelper.CreateUserContext(r)
-	loghelper.LogInfo(uC, loghelper.I00001)
+	var uC = loghelper.UserContextImpl{}.Init(r.Context().Value("X-Correlation-Id").(string))
+	uC.LogInfo(loghelper.I00009)
+
+	//HttpWriter
+	writer := httphelper.HttpWriterImpl{}.Init()
 
 	//Pega Param
 	codigo, err := strconv.Atoi(chi.URLParam(r, "codigo"))
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00001, err)
-		httphelper.CreateResponse(w, http.StatusBadRequest, "Paramêtro inválido", nil)
+		uC.LogError(loghelper.E00001, err)
+		writer.CreateResponse(w, http.StatusBadRequest, "Paramêtro inválido", nil)
 		return
 	}
 
 	//Chama UseCase
-	tModel, err := usecase.BuscarTarefaUsecase(uC, int64(codigo))
+	consultarUsecase := usecase.BuscarTarefaUseCaseImpl{}.Init(uC)
+	tModel, err := consultarUsecase.BuscarTarefaExecute(int64(codigo))
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			loghelper.LogWarn(uC, loghelper.W00001)
-			httphelper.CreateResponse(w, http.StatusUnprocessableEntity, "Código não encontrado", nil)
+			uC.LogWarn(loghelper.W00001)
+			writer.CreateResponse(w, http.StatusUnprocessableEntity, "Código não encontrado", nil)
 			return
 		} else {
-			loghelper.LogError(uC, loghelper.E00002, err)
-			httphelper.CreateResponse(w, http.StatusInternalServerError, "Banco de dados indisponível", nil)
+			uC.LogError(loghelper.E00002, err)
+			writer.CreateResponse(w, http.StatusInternalServerError, "Banco de dados indisponível", nil)
 			return
 		}
 	}
 
 	//Sucesso
-	loghelper.LogInfo(uC, loghelper.I00002)
-	httphelper.CreateResponse(w, http.StatusOK, "CREATED", []any{adapter.TarefaResponseFromTarefaModel(tModel)})
+	uC.LogInfo(loghelper.I00002)
+	writer.CreateResponse(w, http.StatusOK, "CREATED", []any{adapter.TarefaResponseFromTarefaModel(tModel)})
 	return
 }

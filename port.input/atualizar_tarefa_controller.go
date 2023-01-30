@@ -12,18 +12,20 @@ import (
 	"strconv"
 )
 
-func AtualizarTabelasController(w http.ResponseWriter, r *http.Request) {
+func AtualizarTarefaController(w http.ResponseWriter, r *http.Request) {
 
 	//Contexto
-	uC := loghelper.CreateUserContext(r)
+	var uC = loghelper.UserContextImpl{}.Init(r.Context().Value("X-Correlation-Id").(string))
+	uC.LogInfo(loghelper.I00009)
 
-	loghelper.LogInfo(uC, loghelper.I00001)
+	//HttpWriter
+	writer := httphelper.HttpWriterImpl{}.Init()
 
 	//Pega Param
 	codigo, err := strconv.Atoi(chi.URLParam(r, "codigo"))
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00004, err)
-		httphelper.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
+		uC.LogError(loghelper.E00004, err)
+		writer.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
 		return
 	}
 
@@ -31,31 +33,32 @@ func AtualizarTabelasController(w http.ResponseWriter, r *http.Request) {
 	var tRequest request.TarefaRequest
 	err = json.NewDecoder(r.Body).Decode(&tRequest)
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00004, err)
-		httphelper.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
+		uC.LogError(loghelper.E00004, err)
+		writer.CreateResponse(w, http.StatusBadRequest, "Entrada inválida", nil)
 		return
 	}
 
 	//Chama UseCase
-	linhasAtualizadas, err := usecase.AtualizarTarefaUsecase(uC, int64(codigo), adapter.TarefaModelFromTarefaRequest(tRequest))
+	atualizarUsecase := usecase.AtualizarTarefaUsecaseImpl{}.Init(uC)
+	linhasAtualizadas, err := atualizarUsecase.AtualizarTarefaExecute(int64(codigo), adapter.TarefaModelFromTarefaRequest(tRequest))
 	tResp := adapter.TarefaResponseFromTarefaRequest(tRequest)
 	tResp.Codigo = int64(codigo)
 
 	//Monta Resposta
 	if err != nil {
-		loghelper.LogError(uC, loghelper.E00005, err)
-		httphelper.CreateResponse(w, http.StatusInternalServerError, "Erro ao realizar operação de atualizar.", []any{tResp})
+		uC.LogError(loghelper.E00005, err)
+		writer.CreateResponse(w, http.StatusInternalServerError, "Erro ao realizar operação de atualizar.", []any{tResp})
 		return
 	}
 
 	if linhasAtualizadas == 0 {
-		loghelper.LogWarn(uC, loghelper.W00001)
-		httphelper.CreateResponse(w, http.StatusUnprocessableEntity, "Registro não encontrado", []any{tResp})
+		uC.LogWarn(loghelper.W00001)
+		writer.CreateResponse(w, http.StatusUnprocessableEntity, "Registro não encontrado", []any{tResp})
 		return
 	}
 
 	//Sucesso
-	loghelper.LogInfo(uC, loghelper.I00002)
-	httphelper.CreateResponse(w, http.StatusOK, "UPDATED", []any{tResp})
+	uC.LogInfo(loghelper.I00002)
+	writer.CreateResponse(w, http.StatusOK, "UPDATED", []any{tResp})
 	return
 }
